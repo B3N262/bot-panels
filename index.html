@@ -7,6 +7,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #2f3136; color: white; text-align: center; }
         .card { background: #36393f; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-top: 20px; }
         button { padding: 12px 24px; font-size: 16px; background: #5865F2; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
+        .btn-shortcut { background: #3ba55d; margin-bottom: 10px; }
         input, select { padding: 12px; width: 90%; margin: 10px 0; border-radius: 5px; border: 1px solid #202225; background: #40444b; color: white; font-size: 16px; }
         .status-tag { font-weight: bold; }
     </style>
@@ -22,7 +23,14 @@
     </div>
 
     <div class="card">
-        <h3>Send Live Message</h3>
+        <h3>Quick Shortcuts</h3>
+        <input type="text" id="shortcutMessage" placeholder="Type shortcut message...">
+        <button class="btn-shortcut" onclick="sendShortcutMessage(1)">Send via Bot 1 to Channel</button>
+        <button class="btn-shortcut" onclick="sendShortcutMessage(2)">Send via Bot 2 to Channel</button>
+    </div>
+
+    <div class="card">
+        <h3>Custom Live Message</h3>
         <label for="botSelect">Choose Bot:</label>
         <select id="botSelect">
             <option value="1">Bot 1</option>
@@ -35,8 +43,8 @@
     </div>
 
     <script>
-        // Your live Render URL pasted here!
         const BACKEND_URL = "https://my-discord-bot-g5hy.onrender.com"; 
+        const SHORTCUT_CHANNEL_ID = "1508125439753977947";
 
         async function checkStatus() {
             try {
@@ -53,6 +61,26 @@
                 document.getElementById('bot2Status').innerText = "Sleeping/Offline";
                 document.getElementById('bot1Status').style.color = "#faa81a";
                 document.getElementById('bot2Status').style.color = "#faa81a";
+            }
+        }
+
+        async function sendShortcutMessage(botNumber) {
+            const message = document.getElementById('shortcutMessage').value;
+            if(!message) return alert("Please type a message first");
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/send-message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ channelId: SHORTCUT_CHANNEL_ID, message, botNumber })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('shortcutMessage').value = ""; // Clear input on success
+                }
+                alert(data.status || data.error);
+            } catch (err) {
+                alert("Could not reach backend server.");
             }
         }
 
@@ -76,7 +104,6 @@
             }
         }
 
-        // Check status every 10 seconds
         setInterval(checkStatus, 10000);
         checkStatus();
     </script>
